@@ -1,0 +1,169 @@
+//instanciate files
+objref save_t,save_tacs, savv, save_apical10, save_apical5, save_apical0, save_syn, spike_t
+
+//instantiate vector to record ( to be saved)
+objref  rec_soma, rec_apical10, rec_apical5, rec_apical0, Npoints
+
+// instantiate variable to record full cell during AP
+objref spike_v, savspike, AP_x, AP_y, AP_z
+
+
+proc run_APsite_save(){
+
+	spike_length = 2.5 // in ms
+	spike_t = new Vector()
+	
+	// instanciate the vector in which to record voltages ever 0.1 ms
+	// Npoints = int(tstop/0.1)
+	// rec_soma = new Vector(Npoints)
+
+	// // setting recordings in soma 
+	// rec_soma.record(&cell.soma.v(0.5)) // record v in a vector
+	// printf("1====================")
+	// if (Save_apic==1){
+	// 	// instanciate the vector in which to record voltages ever 0.1 ms
+	// 	rec_apical10 = new Vector(Npoints)
+	// 	rec_apical5 = new Vector(Npoints)
+	// 	rec_apical0 = new Vector(Npoints)
+
+	// 	// setting recordings along apical dendrite
+	// 	rec_apical10.record(&cell.apic[10].v )
+	// 	rec_apical5.record(&cell.apic[5].v )
+	// 	rec_apical0.record(&cell.apic[0].v )
+	// }
+	// printf("1====================")
+	// if (Save_site==1){
+	// 	AP_x = new Vector()
+	// 	AP_y = new Vector()
+	// 	AP_z = new Vector()
+	// }
+
+	spike_timer = 0
+	spike_counter = 0
+	stdinit()
+	while (t < tstop-dt/2) {
+		fadvance()
+		if (spike_timer == 0) {
+			forsec cell.somatic { // check for AP initiation in soma
+				if (v(0.5) > 0) {
+					spike_timer = 1
+					spike_counter += 1
+					spike_t.append(t)
+					// if (Save_site==1){
+					// 	AP_x.append(x_xtra(0.5))
+					// 	AP_y.append(y_xtra(0.5))
+					// 	AP_z.append(z_xtra(0.5))
+					// }
+					break
+				}
+			}
+		}
+		if (spike_timer == 0) {
+			forsec cell.axonal { // check for AP initiation in axon
+				if (v(0.5) > 0) {
+					spike_timer = 1
+					spike_counter += 1
+					spike_t.append(t)
+					// if (Save_site==1){
+					// 	AP_x.append(x_xtra(0.5))
+					// 	AP_y.append(y_xtra(0.5))
+					// 	AP_z.append(z_xtra(0.5))
+					// }
+					break
+				}
+			}
+		}
+		
+		// spike_v = new Matrix(numSect, spike_length/dt) // record 2ms of action potential over the whole neuron
+		if (spike_timer > 0 && spike_timer < (spike_length/dt+1)) {
+			// section_idx = 0
+			// forsec cell.all {
+			// 	spike_v.x[section_idx][spike_timer-1] = v(0.5)
+			// 	section_idx += 1
+			// }
+			spike_timer += 1
+			if (spike_timer == (spike_length/dt+1)) {
+				spike_timer = 0
+
+				// savspike = new File()
+				// sprint(s,"./results/%s/spike_%d.txt",result_folder_name,spike_counter)
+				// savspike.wopen(s)
+				// spike_v.fprint(savspike)
+				// savspike.close()
+			}
+		}
+
+	}//end While
+
+	// saving soma voltage time course
+	// savv = new File()	
+	// sprint(s,"./results/%s/somaV.txt",result_folder_name)
+	// savv.wopen(s)
+	// rec_soma.printf(savv)
+	// savv.close()
+
+	// // saving time vector of the simulation
+	// save_t = new File()
+	// sprint(s,"./results/%s/t.txt",result_folder_name)
+	// save_t.wopen(s)
+	// stim_time.printf(save_t,"%.3f\n")
+	// save_t.close()
+
+	// //saving tACS waveform
+	// save_tacs = new File()
+	// sprint(s,"./results/%s/TACS.txt",result_folder_name)
+	// save_tacs.wopen(s)
+	// stim_amp.printf(save_tacs)
+	// save_tacs.close()
+
+	// saving spike time
+	save_t = new File()
+	sprint(s,"./results/%s/spike_t.txt",result_folder_name)
+	save_t.wopen(s)
+	spike_t.printf(save_t,"%.3f\n")
+	save_t.close()
+		
+	// saving apical dend voltages time course
+	// if (Save_apic==1){
+	// 	// saving apical voltages
+	// 	save_apical10 = new File()
+	// 	sprint(s,"./results/%s/apic10V.txt",result_folder_name)
+	// 	save_apical10.wopen(s)
+	// 	rec_apical10.printf(save_apical10)
+	// 	save_apical10.close()
+
+	// 	save_apical5 = new File()
+	// 	sprint(s,"./results/%s/apic5V.txt",result_folder_name)
+	// 	save_apical5.wopen(s)
+	// 	rec_apical5.printf(save_apical5)
+	// 	save_apical5.close()
+
+	// 	save_apical0 = new File()
+	// 	sprint(s,"./results/%s/apic0V.txt",result_folder_name)
+	// 	save_apical0.wopen(s)
+	// 	rec_apical0.printf(save_apical0)
+	// 	save_apical0.close()
+	// }
+
+	// saving AP init site 
+	// if(Save_site= 1){
+	// 	sav_AP_site = new File()
+	// 	sprint(s,"./results/%s/AP_site.txt",result_folder_name)
+	// 	sav_AP_site.wopen(s)
+		
+	// 	for i=0,AP_x.size()-1 {
+	// 		sav_AP_site.printf("%.4f %.4f %.4f\n", AP_x.x(i), AP_y.x(i), AP_z.x(i))
+	// 	}
+		
+	// 	sav_AP_site.close()
+	// }
+
+	// if (Synapse_on == 1){
+	// 	save_syn = new File()
+	// 	sprint(s,"./results/%s/syn_events.txt",result_folder_name)    
+	// 	save_syn.wopen(s) 
+	// 	stim_rec.printf(save_syn) 
+	// 	save_syn.close()
+	// }
+
+}//END run_APsite_save()

@@ -1,0 +1,125 @@
+
+/*
+* $Id: stim.hoc,v 1.5 2009/02/24 00:55:27 ted Exp ted $
+* Set up stimulation waveform
+* 2022/10/07 Modified by Gaugain Gabriel from Modified version of Aman Aberra
+*/
+
+/**
+*       Electric field calculation => only uniform for now
+*       input theta, and phi angles of E-field, assigns Ve to all compartments (es_xtra(x)) for unit E-field (V/m)
+*/
+proc calcesE() { local Ex, Ey, Yz//local theta,phi
+	//theta = $1
+	//phi = $2
+	//theta = theta*PI/180
+	//phi = phi*PI/180
+	//Ex = sin(theta)*cos(phi)
+	//Ey = sin(theta)*sin(phi)
+	//Ez = cos(theta)
+	Ex = $1
+	Ey = $2
+	Ez = $3
+	forall {
+		if (ismembrane("xtra")) {
+			for(x,0){
+                // Ve in [mV] for E of 1 [V/m] <= µm*1e-3 = mm * 1mV/mm = mV
+				es_xtra(x) = -(Ex*x_xtra(x) + Ey*y_xtra(x) + Ez*z_xtra(x))*1e-3 
+			}
+		}
+	}
+}//END calcesE()
+
+/**
+*       Waveform associated to the EF => tDCS and tACS
+*         
+*       NB: tDCS coulb be improved by adding ramp as in clinical use
+*/
+
+objref stim_amp, stim_time
+n_time = tstop/dt+1 // number of time points
+stim_amp = new Vector(n_time)
+stim_time = new Vector(n_time)
+
+
+proc stim_waveform_tACS() { local t_index
+  // generate the sine wave for the stimulation
+  del = $1
+  dur = $2
+  amp = $3
+  freq = $4
+  phi = $5
+
+  for (t_index = 0; t_index <n_time; t_index = t_index+1){
+    stim_time.x[t_index] = t_index * dt
+    if (stim_time.x[t_index] > $1 && stim_time.x[t_index] < ($1+$2)){
+      stim_amp.x[t_index] = $3 * sin(stim_time.x[t_index]*2*3.141592/1000*$4 + $5)
+    }
+  }
+}//END stim_waveform_tACS()
+
+proc stim_waveform_tDCS(){
+  // this uses interpolated play
+  // index    0  1    2    3        4        5
+  // stim vec 0, 0,   1,   1,       0        0
+  // time vec 0, DEL, DEL, DEL+DUR, DEL+DUR, DEL+DUR+1
+  //  really  0, $1,  $1,  $1+$2,   $1+$2,   $1+$2+1
+  // first the stim vector
+  // stim_amp.resize(6)
+  // stim_amp.fill(0)
+  // stim_amp.x[2]=1
+  // stim_amp.x[3]=1
+  // stim_amp.mul($3)
+  // // now the time vector
+  // stim_time.resize(6)
+  // stim_time.x[1]=$1
+  // stim_time.x[2]=$1
+  // stim_time.x[3]=$1+$2
+  // stim_time.x[4]=$1+$2
+  // stim_time.x[5]=$1+$2+1
+
+  // Might be improved by including reallistic ramp used in clinic applications
+  del = $1
+  dur = $2
+  amp = $3
+  if (stim_time.x[t_index] > del) stim_amp.x[t_index] = amp * sin(stim_time.x[t_index]/1000 * 2 *3.141592 *freq)
+
+}//END stim_waveform_tdcs
+
+
+ATTACHED__ = 0
+proc attach_stim() {
+// since stim_xtra is GLOBAL, we only need to specify Vector.play()
+// for one instance of xtra, i.e. at just one internal node
+// of only one section that contains xtra
+ATTACHED__ = 0
+  forall {  // check each section to find one that has xtra
+    if (ATTACHED__ == 0) {  // don't bother if stim is already attached to something
+      if (ismembrane("xtra")) {
+        stim_amp.play(&stim_xtra, stim_time, 1) // "interpolated" play
+        ATTACHED__ = 1
+      }
+    }
+  }
+}//END attach_stim()
+
+
+proc setstim() {
+  del = $1
+  dur = $2
+  amp = $3
+  if(numarg()>=4)  freq = $4 
+  if(numarg()==5)  phi = $5
+
+  
+  if (STIM_TYPE == 1) {
+    stim_waveform_tACS(del, dur, amp, freq, phi)
+    printf("Generated %gHz tACS waveform with del = %g ms, dur = %g ms, amp = %g V/m\n",freq,del,dur,amp)
+
+  } else if (STIM_TYPE == 2) {
+    stim_waveform_tDCS(del, dur, amp)
+    printf("Generated tDCS waveform with del = %g ms, dur = %g ms, amp = %g V/m\n",del,dur,amp)
+  }
+
+  attach_stim()
+}// END setstim()

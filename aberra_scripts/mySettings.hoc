@@ -1,0 +1,28 @@
+strdef result_folder_name
+
+celsius = 34 // default temp
+myelinate_ax = 1// myelinate axon by default
+
+
+plot_neuron = 0   
+Synapse_on = 0
+Save_apic = 1
+   
+STIM_TYPE = 1 // TACS: 1, TDCS: 2
+
+//AMP =0 // V/m - amplitude of stimulation  => Defined in the main function of init() 
+DEL = 00 // ms - delay to first phase   
+DUR = 500 // ms - duration of stimulation   
+FREQ = 10 // Hz - frequency of the TACS stimulation   
+// AMP=0.0
+// tstop = 2*DEL + DUR   
+tstop = 200
+
+// uniform E field stimulation   
+//theta = 180 // deg - polar angle   
+//phi = 0 // deg - azimuthal angle   
+Ex = 0
+Ey = -1
+Ez = 0   
+
+v_init = -70 

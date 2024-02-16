@@ -1,0 +1,38 @@
+objref stim, syn, nc, stim_rec
+
+
+proc set_one_synapse() {
+
+	weight = $1
+
+	// spike generator
+	stim = new NetStim(0.5) 		// Location of NetStim is arbitrary
+	stim.interval = 1000/50  		// ms (mean) time between spikes
+	stim.number = 100000000000  	// (average) number of spikes
+	stim.start = 0 					// ms (mean) start time of first spike
+	stim.noise = 1 					
+	/* range 0 to 1. Fractional randomness 0 deterministic, 1 intervals have decaying exponential distribution */
+	stim.seed(1)
+	
+	// Synapse
+	cell.apic[10] syn = new Exp2Syn(0.5) // Inserts ExpSyn in dend tree
+	syn.tau1 = 2 // ms rise tisme
+	syn.tau2 = 10 // ms decay time
+	syn.e = 0 // mV reversal potential
+	
+	// Connection of the spike generator with the synapse
+	nc = new NetCon(stim, syn)
+	nc.threshold = 10
+	nc.delay = 0
+	nc.weight = weight
+
+	// recording synaptic events
+	stim_rec = new Vector()
+	nc.record(stim_rec)
+
+}// END set_one_synapse	
+
+
+/*
+If one wants to compare with no tACS, should be the same location with the same stim (see the time offset and phase change)
+*/
