@@ -1,7 +1,9 @@
 # tACS Single Cell SSCx
 This repository is the code developped to perform the simulations associated with Gaugain G, Al Harrach M, Yochum M, Wendling F, Bikson M, Modolo J, et al. Frequency-dependent phase entrainment of cortical cell types during tACS: Converging modeling evidence. https://doi.org/10.1101/2023.12.15.571874 [1].
 
-This code was developp to ease the use of single cell models reconstructed and published by the Blue Brain Project from rats somato-sensory cortex (SSCx) [2], which are available in [NMCPortal](https://bbp.epfl.ch/nmc-portal/welcome.html) [3]. To use the code, dowload first the cell to model from this link of the archive containing all the available cells.
+This code was developp to ease the use of single cell models, reconstructed and published by the Blue Brain Project from rats somato-sensory cortex (SSCx) [2]. The cells and details are available in [NMCPortal](https://bbp.epfl.ch/nmc-portal/welcome.html) [3]. To use the code, dowload first the cell to model from this link of the archive containing all the available cells.
+
+All the code requires `neuron`. Other Python packages such as `matplotlib`,`pickle`, `numpy`,`pandas`, are needed to run adequatly. Furthermore, post-processing steps requires `efel` and `astropy` to be installed. To run simulation in parallel, `mpi4py` is required (which also requires an **MPI** installation on your computer).
 
 ## BBPcell class
 The class to pilot single cell models is coded in `BBPCell.py`, and functionnalities can be added as needed. Notably, you can instanciate a cell with or without the set of synapses reconstructed by the BBP, add a curent clamp, add extracellular stimulation (which was the aim of the paper). 
